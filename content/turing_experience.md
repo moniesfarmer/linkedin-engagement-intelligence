@@ -1,0 +1,1 @@
+I recent got into turing and have been working as a Business analyst since march 2, 2026
