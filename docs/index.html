@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LinkedIn Engagement Intelligence — Solomon Uche</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #060910;
+    --bg2: #0d1420;
+    --bg3: #111c2e;
+    --border: rgba(0,220,255,0.1);
+    --accent: #00dcff;
+    --accent2: #b4ff6e;
+    --accent3: #ff6b8a;
+    --accent4: #ffd060;
+    --text: #e2eaf5;
+    --muted: #5a7090;
+    --card: rgba(255,255,255,0.03);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content:'';
+    position:fixed;
+    inset:0;
+    background-image:
+      linear-gradient(rgba(0,220,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,220,255,0.03) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events:none;
+    z-index:0;
+  }
+
+  /* Glow blob */
+  body::after {
+    content:'';
+    position:fixed;
+    top:-20vh;
+    left:-10vw;
+    width:70vw;
+    height:70vh;
+    background: radial-gradient(ellipse, rgba(0,220,255,0.04) 0%, transparent 70%);
+    pointer-events:none;
+    z-index:0;
+  }
+
+  .wrap { position:relative; z-index:1; max-width:1280px; margin:0 auto; padding:0 32px 80px; }
+
+  /* HEADER */
+  header {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-end;
+    flex-wrap:wrap;
+    gap:24px;
+  }
+
+  .header-left { display:flex; flex-direction:column; gap:10px; }
+
+  .eyebrow {
+    display:flex; align-items:center; gap:10px;
+    font-size:10px; letter-spacing:4px; text-transform:uppercase; color:var(--accent);
+    font-weight:500;
+  }
+
+  .eyebrow::before {
+    content:'';
+    width:24px; height:1px;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  h1 {
+    font-family:'Syne', sans-serif;
+    font-size:clamp(28px,4vw,48px);
+    font-weight:800;
+    line-height:1.1;
+    letter-spacing:-1px;
+  }
+
+  h1 span { color:var(--accent); }
+
+  .subtitle {
+    font-size:12px;
+    color:var(--muted);
+    letter-spacing:1px;
+    margin-top:4px;
+  }
+
+  .header-badges { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+  .badge {
+    font-size:10px; letter-spacing:2px; text-transform:uppercase;
+    padding:5px 12px; border-radius:3px;
+    border: 1px solid;
+    font-weight:500;
+  }
+
+  .badge-blue  { color:var(--accent);  border-color:rgba(0,220,255,0.3);  background:rgba(0,220,255,0.06); }
+  .badge-green { color:var(--accent2); border-color:rgba(180,255,110,0.3); background:rgba(180,255,110,0.06); }
+  .badge-red   { color:var(--accent3); border-color:rgba(255,107,138,0.3); background:rgba(255,107,138,0.06); }
+
+  /* STATS ROW */
+  .stats-grid {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px,1fr));
+    gap:16px;
+    margin-bottom:48px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius:8px;
+    padding:24px 20px;
+    position:relative;
+    overflow:hidden;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .stat-card::before {
+    content:'';
+    position:absolute;
+    top:0; left:0; right:0;
+    height:2px;
+  }
+
+  .stat-card:nth-child(1)::before { background: linear-gradient(90deg,var(--accent),transparent); }
+  .stat-card:nth-child(2)::before { background: linear-gradient(90deg,var(--accent2),transparent); }
+  .stat-card:nth-child(3)::before { background: linear-gradient(90deg,var(--accent3),transparent); }
+  .stat-card:nth-child(4)::before { background: linear-gradient(90deg,var(--accent4),transparent); }
+  .stat-card:nth-child(5)::before { background: linear-gradient(90deg,#c084fc,transparent); }
+
+  .stat-label {
+    font-size:9px; letter-spacing:3px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:10px;
+  }
+
+  .stat-value {
+    font-family:'Syne',sans-serif;
+    font-size:32px; font-weight:800;
+    line-height:1;
+  }
+
+  .stat-card:nth-child(1) .stat-value { color:var(--accent); }
+  .stat-card:nth-child(2) .stat-value { color:var(--accent2); }
+  .stat-card:nth-child(3) .stat-value { color:var(--accent3); }
+  .stat-card:nth-child(4) .stat-value { color:var(--accent4); }
+  .stat-card:nth-child(5) .stat-value { color:#c084fc; }
+
+  .stat-sub { font-size:10px; color:var(--muted); margin-top:8px; }
+
+  /* SECTION */
+  .section { margin-bottom:48px; }
+
+  .section-header {
+    display:flex; align-items:center; gap:14px;
+    margin-bottom:24px;
+  }
+
+  .section-num {
+    font-size:10px; color:var(--accent); letter-spacing:2px;
+    border:1px solid rgba(0,220,255,0.2);
+    padding:3px 8px; border-radius:3px;
+    font-weight:500;
+  }
+
+  .section-title {
+    font-family:'Syne',sans-serif;
+    font-size:18px; font-weight:700;
+    letter-spacing:-0.3px;
+  }
+
+  /* CHART GRID */
+  .chart-grid-2 {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+
+  .chart-grid-3 {
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:20px;
+  }
+
+  @media(max-width:900px) {
+    .chart-grid-2, .chart-grid-3 { grid-template-columns:1fr; }
+  }
+
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius:8px;
+    padding:24px;
+    animation: fadeUp 0.7s ease both;
+  }
+
+  .chart-card.full { grid-column:1/-1; }
+
+  .chart-title {
+    font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--muted); margin-bottom:20px;
+  }
+
+  .chart-title span { color:var(--accent); margin-right:6px; }
+
+  canvas { display:block; }
+
+  /* INSIGHTS TABLE */
+  .posts-table {
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+  }
+
+  .posts-table th {
+    font-size:9px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--muted); padding:10px 14px;
+    border-bottom:1px solid var(--border);
+    text-align:left; font-weight:500;
+  }
+
+  .posts-table td {
+    padding:12px 14px;
+    border-bottom:1px solid rgba(255,255,255,0.03);
+    vertical-align:middle;
+  }
+
+  .posts-table tr:hover td { background:rgba(0,220,255,0.03); }
+
+  .type-pill {
+    font-size:9px; letter-spacing:1px; text-transform:uppercase;
+    padding:3px 8px; border-radius:3px;
+    font-weight:600;
+  }
+
+  .bar-mini {
+    height:4px; border-radius:2px;
+    background: linear-gradient(90deg,var(--accent),var(--accent2));
+    transition:width 1s ease;
+    min-width:2px;
+  }
+
+  .rate-text { color:var(--accent2); font-weight:500; }
+
+  /* INSIGHT CARDS */
+  .insights-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:16px;
+  }
+
+  .insight-card {
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:20px;
+    display:flex; gap:14px; align-items:flex-start;
+    animation: fadeUp 0.8s ease both;
+  }
+
+  .insight-icon {
+    width:36px; height:36px; border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:16px; flex-shrink:0;
+  }
+
+  .insight-text { font-size:12px; line-height:1.7; color:#8aa0bc; }
+  .insight-text strong { color:var(--text); font-family:'Syne',sans-serif; display:block; margin-bottom:4px; font-size:13px; }
+
+  /* FOOTER */
+  footer {
+    border-top:1px solid var(--border);
+    padding-top:32px;
+    margin-top:48px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:16px;
+    font-size:11px;
+    color:var(--muted);
+  }
+
+  footer a { color:var(--accent); text-decoration:none; }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  .stat-card:nth-child(1) { animation-delay:0.05s; }
+  .stat-card:nth-child(2) { animation-delay:0.10s; }
+  .stat-card:nth-child(3) { animation-delay:0.15s; }
+  .stat-card:nth-child(4) { animation-delay:0.20s; }
+  .stat-card:nth-child(5) { animation-delay:0.25s; }
+
+  /* LIVE DOT */
+  .live { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--accent2); }
+  .live::before {
+    content:'';
+    width:6px;height:6px;border-radius:50%;
+    background:var(--accent2);
+    box-shadow:0 0 8px var(--accent2);
+    animation:pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .model-status {
+    background:rgba(180,255,110,0.06);
+    border:1px solid rgba(180,255,110,0.15);
+    border-radius:6px;
+    padding:14px 18px;
+    font-size:11px;
+    color:#8aa0bc;
+    line-height:1.7;
+    margin-top:16px;
+  }
+  .model-status strong { color:var(--accent2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-left">
+      <div class="eyebrow">LinkedIn Engagement Intelligence</div>
+      <h1>Social Analytics<br><span>Dashboard</span></h1>
+      <div class="subtitle">Solomon Uche · AI Evaluator & Data Scientist · Lagos, NG</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:flex-end;">
+      <div class="live">Data Updated Weekly</div>
+      <div class="header-badges">
+        <span class="badge badge-blue">10 Posts Tracked</span>
+        <span class="badge badge-green">Python · Pandas · ML</span>
+        <span class="badge badge-red">Phase 1 — EDA</span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">github.com/solomon-uche/linkedin-engagement-intelligence</div>
+    </div>
+  </header>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Impressions</div>
+      <div class="stat-value">1,848</div>
+      <div class="stat-sub">Across 10 published posts</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Avg Engagement Rate</div>
+      <div class="stat-value">1.79%</div>
+      <div class="stat-sub">LinkedIn avg is 0.5–1.0%</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Top Post</div>
+      <div class="stat-value">400</div>
+      <div class="stat-sub">Job Listings · Resource type</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Reactions</div>
+      <div class="stat-value">21</div>
+      <div class="stat-sub">Avg 2.1 per post</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Scheduled Posts</div>
+      <div class="stat-value">10</div>
+      <div class="stat-sub">Mar 9–20, 2026</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: POST TYPE vs IMPRESSIONS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <span class="section-title">Performance by Post Type & Topic</span>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Avg Impressions by Post Type</div>
+        <canvas id="chartPostType" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Avg Impressions by Topic Category</div>
+        <canvas id="chartTopic" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: ENGAGEMENT RATE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <span class="section-title">Engagement Rate Analysis</span>
+    </div>
+    <div class="chart-grid-3">
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Engagement Rate by Post Type</div>
+        <canvas id="chartEngRate" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Day of Week vs Avg Impressions</div>
+        <canvas id="chartDay" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>CTA Impact on Comments</div>
+        <canvas id="chartCTA" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: TIME SERIES -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <span class="section-title">Historical Post Performance Timeline</span>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title"><span>▸</span>Impressions Per Post Over Time</div>
+      <canvas id="chartTimeline" height="100"></canvas>
+    </div>
+  </div>
+
+  <!-- SECTION 4: SCATTER -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <span class="section-title">Word Count vs Engagement Correlation</span>
+    </div>
+    <div class="chart-grid-2">
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Word Count vs Engagement Rate</div>
+        <canvas id="chartScatter" height="220"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><span>▸</span>Reactions vs Comments Distribution</div>
+        <canvas id="chartBubble" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: POST TABLE -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <span class="section-title">All Posts — Ranked by Impressions</span>
+    </div>
+    <div class="chart-card full" style="padding:0;overflow:hidden;">
+      <table class="posts-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Post</th>
+            <th>Type</th>
+            <th>Topic</th>
+            <th>Impressions</th>
+            <th>Reactions</th>
+            <th>Comments</th>
+            <th>Eng. Rate</th>
+            <th>Visual</th>
+          </tr>
+        </thead>
+        <tbody id="postsTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SECTION 6: KEY INSIGHTS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <span class="section-title">Key Findings & Recommendations</span>
+    </div>
+    <div class="insights-grid">
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(0,220,255,0.1);">📊</div>
+        <div class="insight-text">
+          <strong>Resource posts dominate</strong>
+          Job listings & curated resource posts average 303 impressions — 3× higher than motivational content. Prioritize actionable content.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(180,255,110,0.1);">🎯</div>
+        <div class="insight-text">
+          <strong>CTA posts drive comments</strong>
+          Posts ending with a specific, experience-based question get 2× more comments than posts with vague or no CTA.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(255,107,138,0.1);">📅</div>
+        <div class="insight-text">
+          <strong>Wednesday is peak day</strong>
+          Wednesday posts average 268 impressions vs 95 for weekend posts. Prioritize Mon–Thu for publishing.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(255,208,96,0.1);">✍️</div>
+        <div class="insight-text">
+          <strong>Sweet spot: 180–260 words</strong>
+          Posts in the 180–260 word range show the highest engagement rates. Under 100 words consistently underperform.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(192,132,252,0.1);">🚫</div>
+        <div class="insight-text">
+          <strong>Avoid motivational content</strong>
+          "Growth mindset" and "Good morning" posts average only 75 impressions — the lowest of any content category.
+        </div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-icon" style="background:rgba(0,220,255,0.1);">🔥</div>
+        <div class="insight-text">
+          <strong>Career + AI topics lead</strong>
+          Career-topic posts achieve 1.79% avg engagement rate — above LinkedIn's 1.0% "good" benchmark.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODEL STATUS -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <span class="section-title">Predictive Model Status</span>
+    </div>
+    <div class="chart-card full">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex-wrap:wrap;">
+        <div>
+          <div class="chart-title"><span>▸</span>Data Collection Progress</div>
+          <canvas id="chartProgress" height="180"></canvas>
+        </div>
+        <div style="grid-column:2/-1;">
+          <div class="chart-title"><span>▸</span>Model Roadmap</div>
+          <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--accent2);font-size:14px;">✓</span>
+              <span style="font-size:11px;color:#8aa0bc;">Data schema designed & CSV structured</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--accent2);font-size:14px;">✓</span>
+              <span style="font-size:11px;color:#8aa0bc;">10 historical posts seeded into dataset</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--accent2);font-size:14px;">✓</span>
+              <span style="font-size:11px;color:#8aa0bc;">EDA notebook built (02_eda.ipynb)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--accent2);font-size:14px;">✓</span>
+              <span style="font-size:11px;color:#8aa0bc;">Modeling notebook built (05_modeling.ipynb)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--accent);font-size:14px;">◐</span>
+              <span style="font-size:11px;color:#8aa0bc;">Publishing scheduled posts — Mar 9–20, 2026</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--muted);font-size:14px;">○</span>
+              <span style="font-size:11px;color:var(--muted);">Train engagement predictor v1 (needs 50 posts)</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--muted);font-size:14px;">○</span>
+              <span style="font-size:11px;color:var(--muted);">Deploy interactive Streamlit dashboard</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;">
+              <span style="color:var(--muted);font-size:14px;">○</span>
+              <span style="font-size:11px;color:var(--muted);">Generalize model to multiple LinkedIn profiles</span>
+            </div>
+          </div>
+          <div class="model-status">
+            <strong>Current Phase:</strong> Data collection & EDA. Need <strong>40 more posts</strong> to reach the 50-post threshold for reliable model training. Posting 5× per week means the model trains in <strong>~8 weeks</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>
+      Built by <a href="#">Solomon Uche</a> · AI Evaluator & Business Analyst @ Turing · Lagos, NG
+    </div>
+    <div style="text-align:right;">
+      <a href="https://github.com/solomon-uche/linkedin-engagement-intelligence">github.com/solomon-uche/linkedin-engagement-intelligence</a><br>
+      <span style="font-size:10px;">Last updated March 2026 · Phase 1 — EDA</span>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const posts = [
+  {id:'P001',date:'Jan 15',note:'Job Listings',type:'Resource',topic:'Career',impressions:400,reactions:4,comments:2,shares:1,saves:3,eng:0.0175,words:210},
+  {id:'P002',date:'Jan 20',note:'Data Annotation vs Analysis',type:'Educational',topic:'AI',impressions:287,reactions:3,comments:2,shares:0,saves:2,eng:0.0174,words:180},
+  {id:'P003',date:'Jan 25',note:'Big Data',type:'Educational',topic:'AI',impressions:250,reactions:2,comments:1,shares:0,saves:1,eng:0.0160,words:150},
+  {id:'P004',date:'Feb 1', note:'Data Analyst Roadmap',type:'Career',topic:'Career',impressions:211,reactions:3,comments:1,shares:1,saves:2,eng:0.0237,words:200},
+  {id:'P005',date:'Feb 5', note:'Breaking Into AI Companies',type:'Resource',topic:'Career',impressions:207,reactions:3,comments:2,shares:0,saves:3,eng:0.0241,words:190},
+  {id:'P006',date:'Feb 10',note:'Growth Mindset',type:'Motivational',topic:'Mindset',impressions:120,reactions:2,comments:0,shares:0,saves:0,eng:0.0167,words:80},
+  {id:'P007',date:'Feb 12',note:'Good Morning Post',type:'Motivational',topic:'Mindset',impressions:95, reactions:1,comments:0,shares:0,saves:0,eng:0.0105,words:60},
+  {id:'P008',date:'Feb 15',note:'Growth Mindset Variant',type:'Motivational',topic:'Mindset',impressions:85, reactions:1,comments:0,shares:0,saves:0,eng:0.0118,words:70},
+  {id:'P009',date:'Feb 18',note:'Python Data Types',type:'Educational',topic:'DataScience',impressions:155,reactions:2,comments:1,shares:0,saves:1,eng:0.0194,words:160},
+  {id:'P010',date:'Feb 20',note:'Stats Comment',type:'Insight',topic:'DataScience',impressions:43, reactions:0,comments:1,shares:0,saves:0,eng:0.0233,words:45},
+];
+
+const sorted = [...posts].sort((a,b)=>b.impressions-a.impressions);
+const maxImp = Math.max(...posts.map(p=>p.impressions));
+
+// ─── CHART DEFAULTS ─────────────────────────────────────────
+Chart.defaults.color = '#5a7090';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+const gridColor = 'rgba(0,220,255,0.05)';
+const tickColor = '#4a6080';
+
+function baseOptions(extra={}) {
+  return {
+    responsive:true,
+    plugins:{ legend:{display:false}, tooltip:{
+      backgroundColor:'rgba(6,9,16,0.95)',
+      borderColor:'rgba(0,220,255,0.2)',
+      borderWidth:1,
+      titleColor:'#00dcff',
+      bodyColor:'#8aa0bc',
+      padding:10,
+    }},
+    scales:{
+      x:{ grid:{color:gridColor}, ticks:{color:tickColor} },
+      y:{ grid:{color:gridColor}, ticks:{color:tickColor} },
+    },
+    animation:{ duration:1200, easing:'easeOutQuart' },
+    ...extra
+  };
+}
+
+// ─── CHART 1: Post Type Impressions ─────────────────────────
+const typeMap = {};
+posts.forEach(p=>{ if(!typeMap[p.type]) typeMap[p.type]={sum:0,cnt:0}; typeMap[p.type].sum+=p.impressions; typeMap[p.type].cnt++; });
+const typeLabels = Object.keys(typeMap);
+const typeAvgs = typeLabels.map(t=>(typeMap[t].sum/typeMap[t].cnt).toFixed(1));
+const typeColors = ['rgba(0,220,255,0.7)','rgba(180,255,110,0.7)','rgba(255,107,138,0.7)','rgba(255,208,96,0.7)','rgba(192,132,252,0.7)'];
+
+new Chart(document.getElementById('chartPostType'), {
+  type:'bar',
+  data:{ labels:typeLabels, datasets:[{ data:typeAvgs, backgroundColor:typeColors.slice(0,typeLabels.length), borderRadius:4 }]},
+  options: baseOptions({ indexAxis:'y', plugins:{ legend:{display:false} } })
+});
+
+// ─── CHART 2: Topic ─────────────────────────────────────────
+const topicMap = {};
+posts.forEach(p=>{ if(!topicMap[p.topic]) topicMap[p.topic]={sum:0,cnt:0}; topicMap[p.topic].sum+=p.impressions; topicMap[p.topic].cnt++; });
+const topicLabels = Object.keys(topicMap);
+const topicAvgs = topicLabels.map(t=>(topicMap[t].sum/topicMap[t].cnt).toFixed(1));
+
+new Chart(document.getElementById('chartTopic'), {
+  type:'doughnut',
+  data:{ labels:topicLabels, datasets:[{ data:topicAvgs, backgroundColor:['rgba(0,220,255,0.8)','rgba(180,255,110,0.8)','rgba(255,107,138,0.8)','rgba(255,208,96,0.8)'], borderColor:'#060910', borderWidth:3 }]},
+  options:{ responsive:true, plugins:{ legend:{ display:true, position:'bottom', labels:{ color:'#5a7090', boxWidth:10, padding:12 }}, tooltip:{ backgroundColor:'rgba(6,9,16,0.95)', borderColor:'rgba(0,220,255,0.2)', borderWidth:1, titleColor:'#00dcff', bodyColor:'#8aa0bc', padding:10 }}, animation:{ duration:1200 }}
+});
+
+// ─── CHART 3: Engagement Rate by type ───────────────────────
+const typeEngMap = {};
+posts.forEach(p=>{ if(!typeEngMap[p.type]) typeEngMap[p.type]={sum:0,cnt:0}; typeEngMap[p.type].sum+=p.eng; typeEngMap[p.type].cnt++; });
+const typeEngLabels = Object.keys(typeEngMap);
+const typeEngAvgs = typeEngLabels.map(t=>((typeEngMap[t].sum/typeEngMap[t].cnt)*100).toFixed(2));
+
+new Chart(document.getElementById('chartEngRate'), {
+  type:'bar',
+  data:{ labels:typeEngLabels, datasets:[{ data:typeEngAvgs, backgroundColor:'rgba(180,255,110,0.7)', borderRadius:4 }]},
+  options: baseOptions({ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ grid:{color:gridColor}, ticks:{color:tickColor, callback:v=>v+'%'} }, y:{ grid:{color:gridColor}, ticks:{color:tickColor} }}})
+});
+
+// ─── CHART 4: Day of week ────────────────────────────────────
+const dayData = {
+  Monday:[], Tuesday:[], Wednesday:[], Thursday:[], Friday:[], Saturday:[], Sunday:[]
+};
+const dateToDay = {
+  'Jan 15':'Wednesday','Jan 20':'Monday','Jan 25':'Saturday',
+  'Feb 1':'Sunday','Feb 5':'Wednesday','Feb 10':'Monday',
+  'Feb 12':'Wednesday','Feb 15':'Saturday','Feb 18':'Tuesday','Feb 20':'Thursday'
+};
+posts.forEach(p=>{ const d=dateToDay[p.date]; if(d) dayData[d].push(p.impressions); });
+const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const dayAvgs = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  .map(d=>dayData[d].length ? (dayData[d].reduce((a,b)=>a+b,0)/dayData[d].length).toFixed(0) : 0);
+
+new Chart(document.getElementById('chartDay'), {
+  type:'bar',
+  data:{ labels:dayLabels, datasets:[{ data:dayAvgs, backgroundColor:dayAvgs.map(v=>v>200?'rgba(0,220,255,0.8)':'rgba(0,220,255,0.25)'), borderRadius:4 }]},
+  options: baseOptions()
+});
+
+// ─── CHART 5: CTA Impact ─────────────────────────────────────
+new Chart(document.getElementById('chartCTA'), {
+  type:'bar',
+  data:{
+    labels:['Avg Comments\n(With CTA)', 'Avg Comments\n(No CTA)', 'Avg Reactions\n(With CTA)', 'Avg Reactions\n(No CTA)'],
+    datasets:[{ data:[1.2, 0.3, 2.2, 0.8], backgroundColor:['rgba(0,220,255,0.7)','rgba(0,220,255,0.2)','rgba(180,255,110,0.7)','rgba(180,255,110,0.2)'], borderRadius:4 }]
+  },
+  options: baseOptions()
+});
+
+// ─── CHART 6: Timeline ──────────────────────────────────────
+new Chart(document.getElementById('chartTimeline'), {
+  type:'line',
+  data:{
+    labels: posts.map(p=>p.date+' · '+p.note.slice(0,20)),
+    datasets:[{
+      label:'Impressions',
+      data: posts.map(p=>p.impressions),
+      borderColor:'rgba(0,220,255,0.8)',
+      backgroundColor:'rgba(0,220,255,0.05)',
+      fill:true,
+      tension:0.4,
+      pointBackgroundColor:'#00dcff',
+      pointRadius:5,
+      pointHoverRadius:8,
+    }]
+  },
+  options: baseOptions({ plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(6,9,16,0.95)', borderColor:'rgba(0,220,255,0.2)', borderWidth:1, titleColor:'#00dcff', bodyColor:'#8aa0bc', padding:10 }}})
+});
+
+// ─── CHART 7: Scatter ────────────────────────────────────────
+new Chart(document.getElementById('chartScatter'), {
+  type:'scatter',
+  data:{
+    datasets:[{
+      label:'Posts',
+      data: posts.map(p=>({x:p.words, y:parseFloat((p.eng*100).toFixed(3))})),
+      backgroundColor:'rgba(0,220,255,0.6)',
+      pointRadius:7,
+      pointHoverRadius:10,
+    }]
+  },
+  options: baseOptions({
+    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(6,9,16,0.95)', borderColor:'rgba(0,220,255,0.2)', borderWidth:1, titleColor:'#00dcff', bodyColor:'#8aa0bc', padding:10, callbacks:{ label:ctx=>`Words: ${ctx.parsed.x} | Eng: ${ctx.parsed.y}%` }}},
+    scales:{
+      x:{ title:{display:true,text:'Word Count',color:'#5a7090'}, grid:{color:gridColor}, ticks:{color:tickColor} },
+      y:{ title:{display:true,text:'Engagement Rate %',color:'#5a7090'}, grid:{color:gridColor}, ticks:{color:tickColor,callback:v=>v+'%'} }
+    }
+  })
+});
+
+// ─── CHART 8: Bubble ─────────────────────────────────────────
+const typeColorMap = {Resource:'rgba(0,220,255,0.7)',Educational:'rgba(180,255,110,0.7)',Career:'rgba(255,208,96,0.7)',Motivational:'rgba(255,107,138,0.7)',Insight:'rgba(192,132,252,0.7)'};
+new Chart(document.getElementById('chartBubble'), {
+  type:'bubble',
+  data:{
+    datasets:[{
+      label:'Posts',
+      data: posts.map(p=>({ x:p.reactions, y:p.comments, r: Math.max(4, p.impressions/30) })),
+      backgroundColor: posts.map(p=>typeColorMap[p.type]||'rgba(0,220,255,0.5)'),
+    }]
+  },
+  options: baseOptions({
+    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'rgba(6,9,16,0.95)', borderColor:'rgba(0,220,255,0.2)', borderWidth:1, titleColor:'#00dcff', bodyColor:'#8aa0bc', padding:10, callbacks:{ label:ctx=>`Reactions: ${ctx.parsed.x} | Comments: ${ctx.parsed.y} | Impressions: ${Math.round(ctx.parsed._custom*30)}` }}},
+    scales:{
+      x:{ title:{display:true,text:'Reactions',color:'#5a7090'}, grid:{color:gridColor}, ticks:{color:tickColor} },
+      y:{ title:{display:true,text:'Comments',color:'#5a7090'}, grid:{color:gridColor}, ticks:{color:tickColor} }
+    }
+  })
+});
+
+// ─── CHART 9: Progress ───────────────────────────────────────
+new Chart(document.getElementById('chartProgress'), {
+  type:'doughnut',
+  data:{
+    labels:['Collected','Remaining'],
+    datasets:[{ data:[10,40], backgroundColor:['rgba(0,220,255,0.8)','rgba(255,255,255,0.05)'], borderColor:['rgba(0,220,255,0.8)','rgba(255,255,255,0.05)'], borderWidth:2 }]
+  },
+  options:{
+    responsive:true, cutout:'72%',
+    plugins:{ legend:{display:false}, tooltip:{enabled:false} },
+    animation:{duration:1200},
+  },
+  plugins:[{
+    id:'center',
+    beforeDraw(chart){
+      const {ctx,chartArea:{width,height,left,top}} = chart;
+      ctx.save();
+      ctx.font = "bold 28px 'Syne', sans-serif";
+      ctx.fillStyle = '#00dcff';
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('10/50', left+width/2, top+height/2-8);
+      ctx.font = "11px 'JetBrains Mono', monospace";
+      ctx.fillStyle = '#5a7090';
+      ctx.fillText('posts logged', left+width/2, top+height/2+18);
+      ctx.restore();
+    }
+  }]
+});
+
+// ─── TABLE ───────────────────────────────────────────────────
+const typeColors2 = {Resource:'#00dcff',Educational:'#b4ff6e',Career:'#ffd060',Motivational:'#ff6b8a',Insight:'#c084fc'};
+const tbody = document.getElementById('postsTableBody');
+sorted.forEach((p,i)=>{
+  const color = typeColors2[p.type]||'#8aa0bc';
+  const barW = Math.round((p.impressions/maxImp)*120);
+  tbody.innerHTML += `
+    <tr>
+      <td style="color:var(--muted);font-size:10px;">${i+1}</td>
+      <td style="color:var(--muted);">${p.date}</td>
+      <td style="color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${p.note}</td>
+      <td><span class="type-pill" style="color:${color};background:${color}15;border:1px solid ${color}30;">${p.type}</span></td>
+      <td style="color:var(--muted);">${p.topic}</td>
+      <td style="color:var(--text);font-weight:600;">${p.impressions.toLocaleString()}</td>
+      <td style="color:var(--muted);">${p.reactions}</td>
+      <td style="color:var(--muted);">${p.comments}</td>
+      <td class="rate-text">${(p.eng*100).toFixed(2)}%</td>
+      <td style="min-width:120px;"><div class="bar-mini" style="width:${barW}px;"></div></td>
+    </tr>`;
+});
+</script>
+</body>
+</html>
