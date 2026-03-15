@@ -9,11 +9,11 @@ P007,2025-02-12,Wednesday,Morning,Motivational,Short,60,4,TRUE,95,1,0,0,0,0.0105
 P008,2025-02-15,Saturday,Morning,Motivational,Short,70,4,TRUE,85,1,0,0,0,0.0118,Mindset,Statement,FALSE,Growth mindset variant
 P009,2025-02-18,Tuesday,Morning,Educational,List,160,6,TRUE,155,2,1,0,1,0.0194,DataScience,Statement,FALSE,Python data types
 P010,2025-02-20,Thursday,Morning,Comment,Text,45,0,FALSE,43,0,1,0,0,0.0233,DataScience,Statement,FALSE,Stats comment on Emeka post
-P011,2026-03-09,Monday,Morning,Announcement,Story,280,6,TRUE,0,0,0,0,0,0.0000,AI,Statement,FALSE,New role at Turing - SCHEDULED
-P012,2026-03-10,Tuesday,Morning,Educational,List,230,7,TRUE,0,0,0,0,0,0.0000,AI,Statement,FALSE,What makes AI response good - SCHEDULED
-P013,2026-03-11,Wednesday,Morning,Insight,Story,260,7,TRUE,0,0,0,0,0,0.0000,DataScience,Statement,FALSE,Hidden cost of bad training data - SCHEDULED
-P014,2026-03-12,Thursday,Morning,Career,Story,240,7,TRUE,0,0,0,0,0,0.0000,Career,Statement,FALSE,Annotator to Evaluator - SCHEDULED
-P015,2026-03-13,Friday,Morning,Resource,List,220,8,TRUE,0,0,0,0,0,0.0000,AI,Statement,FALSE,5 signs AI response failing - SCHEDULED
+P011,2026-03-09,Monday,Morning,Announcement,Story,280,6,TRUE,604,2,0,0,0,0.3300,AI,Statement,FALSE,New role at Turing
+P012,2026-03-10,Tuesday,Morning,Educational,List,230,7,TRUE,113,1,0,0,0,0.7400,AI,Statement,FALSE,What makes AI response good
+P013,2026-03-11,Wednesday,Morning,Insight,Story,260,7,TRUE,46,2,0,0,0,4.3500,DataScience,Statement,FALSE,Hidden cost of bad training data
+P014,2026-03-12,Thursday,Morning,Career,Story,240,7,TRUE,76,1,0,0,0,1.3200,Career,Statement,FALSE,Annotator to Evaluator
+P015,2026-03-13,Friday,Morning,Resource,List,220,8,TRUE,107,2,0,0,0,1.8700,AI,Statement,FALSE,5 signs AI response failing
 P016,2026-03-16,Monday,Morning,Reflection,Story,250,7,TRUE,0,0,0,0,0,0.0000,AI,Statement,FALSE,Week 1 at Turing - SCHEDULED
 P017,2026-03-17,Tuesday,Morning,Educational,List,270,7,TRUE,0,0,0,0,0,0.0000,Career,Statement,FALSE,BAs and AI - SCHEDULED
 P018,2026-03-18,Wednesday,Morning,Interactive,Debate,200,7,TRUE,0,0,0,0,0,0.0000,AI,Question,FALSE,Human vs AI judgment poll - SCHEDULED
